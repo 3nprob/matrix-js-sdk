@@ -539,19 +539,17 @@ export class InteractiveAuth {
             return;
         }
 
-        if (this.data && this.data.errcode || this.data.error) {
+        if (this.data?.errcode || this.data?.error) {
             this.stateUpdatedCallback(nextStage, {
-                errcode: this.data.errcode || "",
-                error: this.data.error || "",
+                errcode: this.data?.errcode || "",
+                error: this.data?.error || "",
             });
             return;
         }
 
-        const stageStatus: IStageStatus = {};
-        if (nextStage == EMAIL_STAGE_TYPE) {
-            stageStatus.emailSid = this.emailSid;
-        }
-        this.stateUpdatedCallback(nextStage, stageStatus);
+        this.stateUpdatedCallback(nextStage, nextStage === EMAIL_STAGE_TYPE
+            ? { emailSid: this.emailSid }
+            : {});
     }
 
     /**
