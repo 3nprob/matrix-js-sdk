@@ -417,7 +417,7 @@ export class AutoDiscovery {
             const request = require("./matrix").getRequest();
             if (!request) throw new Error("No request library available");
             request(
-                { method: "GET", uri, timeout: 5000 },
+                { method: "GET", uri, timeout: parseInt(process.env.ELEMENT_HTTP_TIMEOUT) || 5000 },
                 (error: Error, response: ServerResponse, body: string) => {
                     if (error || response?.statusCode < 200 || response?.statusCode >= 300) {
                         const result = { error, raw: {} };
