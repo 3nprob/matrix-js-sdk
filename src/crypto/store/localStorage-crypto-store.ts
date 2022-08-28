@@ -367,9 +367,14 @@ export class LocalStorageCryptoStore extends MemoryCryptoStore {
      *
      * @returns {Promise} Promise which resolves when the store has been cleared.
      */
-    public deleteAllData(): Promise<void> {
-        this.store.removeItem(KEY_END_TO_END_ACCOUNT);
-        return Promise.resolve();
+    public async deleteAllData(): Promise<void> {
+        await super.deleteAllData();
+        if (!this.store) {
+            throw new Error('No store to delete data from');
+        }
+        for (let i = 0; i < this.store.length; ++i) {
+            this.store.removeItem(this.store.key(i));
+        }
     }
 
     // Olm account

@@ -1408,7 +1408,7 @@ export class MatrixClient extends TypedEventEmitter<EmittedEvents, ClientEventHa
      *
      * @returns {Promise} Promise which resolves when the stores have been cleared.
      */
-    public clearStores(): Promise<void> {
+    public async clearStores(): Promise<void> {
         if (this.clientRunning) {
             throw new Error("Cannot clear stores while client is running");
         }

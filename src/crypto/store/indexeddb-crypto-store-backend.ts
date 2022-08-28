@@ -65,7 +65,10 @@ export class Backend implements CryptoStore {
         return this;
     }
     public async deleteAllData(): Promise<void> {
-        throw Error("This is not implemented, call IDBFactory::deleteDatabase(dbName) instead.");
+        const fac = new IDBFactory();
+        fac.deleteDatabase(this.db.name);
+        createDatabase(this.db);
+        // throw Error("This is not implemented, call IDBFactory::deleteDatabase(dbName) instead.");
     }
 
     /**

@@ -121,11 +121,11 @@ export class IndexedDBCryptoStore implements CryptoStore {
                 logger.log(`connected to indexeddb ${this.dbName}`);
                 resolve(new IndexedDBCryptoStoreBackend.Backend(db));
             };
-        }).then((backend) => {
+        }).then(async (backend) => {
             // Edge has IndexedDB but doesn't support compund keys which we use fairly extensively.
             // Try a dummy query which will fail if the browser doesn't support compund keys, so
             // we can fall back to a different backend.
-            return backend.doTxn(
+            await backend.doTxn(
                 'readonly',
                 [
                     IndexedDBCryptoStore.STORE_INBOUND_GROUP_SESSIONS,
@@ -133,8 +133,9 @@ export class IndexedDBCryptoStore implements CryptoStore {
                 ],
                 (txn) => {
                     backend.getEndToEndInboundGroupSession('', '', txn, () => {});
-                }).then(() => backend,
+                },
             );
+            return backend;
         }).catch((e) => {
             if (e.name === 'VersionError') {
                 logger.warn("Crypto DB is too new for us to use!", e);
@@ -168,8 +169,10 @@ export class IndexedDBCryptoStore implements CryptoStore {
      *
      * @returns {Promise} resolves when the store has been cleared.
      */
-    public deleteAllData(): Promise<void> {
+    public async deleteAllData(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            const deleteBackendPromise = this.backend?.deleteAllData();
+
             if (!this.indexedDB) {
                 reject(new Error('no indexeddb support available'));
                 return;
@@ -191,13 +194,14 @@ export class IndexedDBCryptoStore implements CryptoStore {
 
             req.onsuccess = () => {
                 logger.log(`Removed indexeddb instance: ${this.dbName}`);
-                resolve();
+                resolve(deleteBackendPromise);
             };
         }).catch((e) => {
             // in firefox, with indexedDB disabled, this fails with a
             // DOMError. We treat this as non-fatal, so that people can
             // still use the app.
-            logger.warn(`unable to delete IndexedDBCryptoStore: ${e}`);
+            console.warn(`unable to delete IndexedDBCryptoStore: ${e}`);
+            console.error(e);
         });
     }
 

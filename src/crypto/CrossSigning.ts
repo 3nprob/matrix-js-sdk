@@ -709,6 +709,7 @@ export function createCryptoStoreCacheCallbacks(store: CryptoStore, olmDevice: O
                     },
                 );
             });
+            logger.log('HERP', key);
 
             if (key && key.ciphertext) {
                 const pickleKey = Buffer.from(olmDevice.pickleKey);

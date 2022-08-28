@@ -78,7 +78,6 @@ export class MemoryCryptoStore implements CryptoStore {
      */
     public deleteAllData(): Promise<void> {
         return new Promise((resolve) => {
-
             [
                 this.crossSigningKeys,
                 this.privateKeys,

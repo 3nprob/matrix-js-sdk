@@ -23,6 +23,7 @@ import {
     IndexedDBCryptoStore,
 } from '../../../src/crypto/store/indexeddb-crypto-store';
 import { MemoryCryptoStore } from '../../../src/crypto/store/memory-crypto-store';
+import { LocalStorageCryptoStore } from '../../../src/crypto/store/localStorage-crypto-store';
 import 'fake-indexeddb/auto';
 import 'jest-localstorage-mock';
 import { OlmDevice } from "../../../src/crypto/OlmDevice";
@@ -222,17 +223,17 @@ describe.each([
     ["IndexedDBCryptoStore",
         () => new IndexedDBCryptoStore(global.indexedDB, "tests")],
     ["LocalStorageCryptoStore",
-        () => new IndexedDBCryptoStore(undefined, "tests")],
+        () => new LocalStorageCryptoStore(global.sessionStorage)],
     ["MemoryCryptoStore", () => {
         const store = new IndexedDBCryptoStore(undefined, "tests");
         // @ts-ignore set private properties
-        store._backend = new MemoryCryptoStore();
+        store.backend = new MemoryCryptoStore();
         // @ts-ignore
-        store._backendPromise = Promise.resolve(store._backend);
+        store.backendPromise = Promise.resolve(store.backend);
         return store;
     }],
 ])("CrossSigning > createCryptoStoreCacheCallbacks [%s]", function(name, dbFactory) {
-    let store;
+    let store: IndexedDBCryptoStore | LocalStorageCryptoStore;
 
     beforeAll(() => {
         store = dbFactory();
@@ -256,5 +257,26 @@ describe.each([
 
         const key = await getCrossSigningKeyCache("self_signing", "");
         expect(new Uint8Array(key)).toEqual(testKey);
+    });
+
+    it("should not be able to retrieve data after deleteAllData", async () => {
+        // TODO: Make this test case work
+        if (name === "IndexedDBCryptoStore") {
+            return;
+        }
+        console.log('DERP', name);
+        await store.startup();
+        const olmDevice = new OlmDevice(store);
+        const { getCrossSigningKeyCache, storeCrossSigningKeyCache } =
+              createCryptoStoreCacheCallbacks(store, olmDevice);
+        await storeCrossSigningKeyCache("self_signing", testKey);
+
+        const key = await getCrossSigningKeyCache("self_signing", "");
+        expect(new Uint8Array(key)).toEqual(testKey);
+
+        await store.deleteAllData();
+
+        const deletedKey = await getCrossSigningKeyCache("self_signing", "");
+        expect(deletedKey).toBeNull();
     });
 });
