@@ -77,7 +77,30 @@ export class MemoryCryptoStore implements CryptoStore {
      * @returns {Promise} Promise which resolves when the store has been cleared.
      */
     public deleteAllData(): Promise<void> {
-        return Promise.resolve();
+        return new Promise((resolve) => {
+
+            [
+                this.crossSigningKeys,
+                this.privateKeys,
+                this.sessions,
+                this.sessionProblems,
+                this.notifiedErrorDevices,
+                this.inboundGroupSessions,
+                this.inboundGroupSessionsWithheld,
+                this.rooms,
+                this.sessionsNeedingBackup,
+                this.sharedHistoryInboundGroupSessions,
+            ].forEach(store => {
+                store && Object.keys(store).forEach(k => {
+                    delete store[k];
+                });
+            });
+            this.outgoingRoomKeyRequests = [];
+            this.account = null;
+            this.crossSigningKeys = null;
+            this.deviceData = null;
+            resolve();
+        });
     }
 
     /**
